@@ -2,13 +2,26 @@
 
 This guide outlines the production-ready deployment strategy for the Edge Service on a DigitalOcean Droplet using Nginx, HTTPS via Certbot, and `ufw` firewall rules.
 
+---
+
+## Security Requirements & Firewalls (UFW)
+
+> [!WARNING]
+> **Strict Port Isolation:** The Uvicorn app processes execute on port `8000` bound to the local loopback interface `127.0.0.1`.
+> **You must configure UFW to drop external incoming traffic to port 8000.** Letting clients access port 8000 directly bypasses Nginx reverse proxying, exposing your application to unencrypted traffic and potential exploits. Only ports 80 (HTTP) and 443 (HTTPS) must be allowed externally.
+
+---
+
 ## Environment Variables
 
 Create a `.env` file containing the following:
 
 ```env
 MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/?retryWrites=true&w=majority
+CORS_ORIGINS=https://dashboard.yourdomain.com
 ```
+
+---
 
 ## Production Server Setup
 
@@ -27,6 +40,8 @@ passwd edge-service
 usermod -aG sudo edge-service
 ```
 
+---
+
 ## Swap Memory Allocation
 
 To ensure system stability during OS updates or high telemetry spikes:
@@ -39,6 +54,8 @@ sudo swapon /swapfile
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 free -h
 ```
+
+---
 
 ## Service Installation
 
@@ -55,6 +72,8 @@ pip install -r requirements.txt
 chmod 600 .env
 ```
 
+---
+
 ## Fish Shell Configuration
 
 To streamline the environment, add the following to `~/.config/fish/config.fish`:
@@ -64,6 +83,8 @@ set -g fish_greeting
 set -gx ENV_PATH "/home/edge-service/Edge-Service/.env"
 set -gx TERM xterm-256color
 ```
+
+---
 
 ## Nginx & HTTPS Configuration
 
@@ -133,19 +154,31 @@ sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 
 # Obtain SSL Certificate
-sudo certbot --nginx -d edge-api.yourdomain.com
+sudo certbot --nginx -d edge.yourdomain.com
 
 sudo systemctl restart nginx
 sudo systemctl enable nginx.service
 ```
 
+---
+
 ## Firewall Setup
 
+Set up the UFW rules to drop external incoming traffic to the API port `8000`, restricting exposure strictly to standard secure ports.
+
 ```bash
+# Allow necessary services
 sudo ufw allow OpenSSH
 sudo ufw allow 'Nginx HTTPS'
+sudo ufw allow 'Nginx HTTP'
+
+# Explicitly ensure port 8000 is blocked externally (UFW denies by default)
+sudo ufw deny 8000/tcp
+
+# Enable firewall
 sudo ufw --force enable
-sudo ufw status
+sudo ufw status verbose
 ```
 
 To run the application persistently, refer to the provided `systemd/Edge_Service.service` template.
+
