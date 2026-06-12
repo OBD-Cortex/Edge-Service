@@ -49,4 +49,4 @@ To boot this service locally:
 
 ## Deployment Guide
 
-*   Refer to [DEPLOYMENT.md](file:///home/bodz/OBD-Cortex/Edge_Service/DEPLOYMENT.md) for production VM setup using Nginx reverse proxying, UFW firewall configurations, and systemd automation templates.
+*   Refer to [DEPLOYMENT.md](file:///home/bodz/OBD-Cortex/Edge-Service/DEPLOYMENT.md) for production VM setup using Nginx reverse proxying, UFW firewall configurations, and systemd automation templates.

@@ -1,0 +1,16 @@
+[Unit]
+Description=OBD-Cortex Edge Service (FastAPI)
+After=network.target
+
+[Service]
+User=edge-service
+Group=edge-service
+WorkingDirectory=/home/edge-service/Edge-Service
+Environment="PATH=/home/edge-service/Edge-Service/venv/bin"
+ExecStart=/home/edge-service/Edge-Service/venv/bin/uvicorn main_api:app --app-dir src --host 127.0.0.1 --port 8000 --workers 2
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

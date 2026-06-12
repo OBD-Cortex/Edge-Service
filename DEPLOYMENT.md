@@ -52,7 +52,7 @@ chmod 600 /home/edge-service/.ssh/authorized_keys
 To ensure system stability during OS updates or high telemetry spikes:
 
 ```bash
-sudo fallocate -l 1G /swapfile
+sudo dd if=/dev/zero of=/swapfile bs=1M count=1024 status=progress
 sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
@@ -85,7 +85,7 @@ To streamline the environment, add the following to `~/.config/fish/config.fish`
 
 ```fish
 set -g fish_greeting
-set -gx ENV_PATH "/home/edge-service/Edge_Service/.env"
+set -gx ENV_PATH "/home/edge-service/Edge-Service/.env"
 set -gx TERM xterm-256color
 ```
 
@@ -107,7 +107,7 @@ Define the custom log format in `/etc/nginx/nginx.conf` (inside the `http { ... 
 Configure Nginx (`sudo nvim /etc/nginx/sites-available/Edge-Service`):
 
 ```nginx
-limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/s;
+limit_req_zone $binary_remote_addr zone=edge_limit:10m rate=100r/s;
 
 server {
     server_name edge.yourdomain.com;
@@ -120,7 +120,7 @@ server {
     client_max_body_size 10M;
 
     location / {
-        limit_req zone=api_limit burst=50 nodelay;
+        limit_req zone=edge_limit burst=50 nodelay;
 
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
@@ -169,7 +169,7 @@ sudo ufw allow 'Nginx Full'
 sudo ufw --force enable
 
 # Obtain SSL Certificate
-sudo certbot --nginx -d edge.yourdomain.com
+sudo certbot --nginx -d edge.yourdomain.com --register-unsafely-without-email
 
 # Revert firewall to HTTPS only by allowing 'Nginx HTTPS' and deleting 'Nginx Full'
 sudo ufw allow 'Nginx HTTPS'
@@ -193,5 +193,5 @@ Verify the configuration:
 sudo ufw status verbose
 ```
 
-To run the application persistently, refer to the provided `systemd/Edge_Service.service` template.
+To run the application persistently, refer to the provided `systemd/Edge-Service.service` template.
 
