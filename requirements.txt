@@ -8,3 +8,4 @@ uvicorn
 
 # Utilities
 python-dotenv
+httpx
